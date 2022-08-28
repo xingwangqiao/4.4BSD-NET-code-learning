@@ -40,11 +40,11 @@
 /*
  * Mbufs are of a single size, MSIZE (machine/machparam.h), which
  * includes overhead.  An mbuf may add a single "mbuf cluster" of size
- * MCLBYTES (also in machine/machparam.h), which has no additional overhead
+ * MCLBYTES 典型值 为 2048 (also in machine/machparam.h), which has no additional overhead
  * and is used instead of the internal data area; this is done when
  * at least MINCLSIZE of data must be stored.
  */
-
+// MSIZE = 128
 #define	MLEN		(MSIZE - sizeof(struct m_hdr))	/* normal data len */
 #define	MHLEN		(MLEN - sizeof(struct pkthdr))	/* data len w/pkthdr */
 
@@ -60,17 +60,18 @@
  */
 #define mtod(m,t)	((t)((m)->m_data))
 #define	dtom(x)		((struct mbuf *)((int)(x) & ~(MSIZE-1)))
-#define	mtocl(x)	(((u_int)(x) - (u_int)mbutl) >> MCLSHIFT)
-#define	cltom(x)	((caddr_t)((u_int)mbutl + ((u_int)(x) << MCLSHIFT)))
+#define	mtocl(x)	(((u_int)(x) - (u_int)mbutl) >> MCLSHIFT) // 这段看不懂
+#define	cltom(x)	((caddr_t)((u_int)mbutl + ((u_int)(x) << MCLSHIFT))) // 同理，这段也看不懂
 
 /* header at beginning of each mbuf: */
+// 感觉这里描述的都是 32 位机器
 struct m_hdr {
-	struct	mbuf *mh_next;		/* next buffer in chain */
-	struct	mbuf *mh_nextpkt;	/* next chain in queue/record */
-	int	mh_len;			/* amount of data in this mbuf */
+	struct	mbuf *mh_next;		/* next buffer in chain */ // 这里指向下一个 mbuf， 组成一条链表，表示一个网络包
+	struct	mbuf *mh_nextpkt;	/* next chain in queue/record */// 这里指向下一个包的首个头节点
+	int	mh_len;			/* amount of data in this mbuf */ 
 	caddr_t	mh_data;		/* location of data */
 	short	mh_type;		/* type of data in this mbuf */
-	short	mh_flags;		/* flags; see below */
+	short	mh_flags;		/* flags; see below */  // 用来标记包头、包尾、以及是否使用簇
 };
 
 /* record/packet header in first mbuf of chain; valid if M_PKTHDR set */
@@ -141,8 +142,8 @@ struct mbuf {
 #define MT_OOBDATA	15	/* expedited data  */
 
 /* flags to m_get/MGET */
-#define	M_DONTWAIT	M_NOWAIT
-#define	M_WAIT		M_WAITOK
+#define	M_DONTWAIT	M_NOWAIT // 如果存储器不可用，不会等待
+#define	M_WAIT		M_WAITOK // 如果存储器不可用，等到它可用
 
 /*
  * mbuf utility macros:

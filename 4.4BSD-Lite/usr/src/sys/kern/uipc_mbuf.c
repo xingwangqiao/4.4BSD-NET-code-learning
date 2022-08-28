@@ -115,7 +115,7 @@ m_retry(i, t)
 	register struct mbuf *m;
 
 	m_reclaim();
-#define m_retry(i, t)	(struct mbuf *)0
+#define m_retry(i, t)	(struct mbuf *)0 // 这个宏是为了让下面的 MGET 宏展开的时候，不会再去里面的 m_retry 的逻辑，如果没有这段，这里就会陷入无限循环
 	MGET(m, i, t);
 #undef m_retry
 	return (m);
